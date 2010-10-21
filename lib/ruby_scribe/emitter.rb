@@ -61,7 +61,7 @@ module RubyScribe
       line "module #{sexp.sexp_body[0]}"
       
       indent do
-        emit sexp.sexp_body[2].sexp_body[0]
+        emit sexp.sexp_body[1].sexp_body[0]
       end
       
       line "end"
@@ -85,9 +85,13 @@ module RubyScribe
     end
     
     def emit_method_call(sexp)
-      segment "#{sexp.sexp_body[1]}("
-      emit_method_argument_list(sexp.sexp_body[2])
-      segment ")"
+      segment "#{sexp.sexp_body[1]}"
+      
+      if sexp.sexp_body[2].sexp_body[0]
+        segment "("
+        emit_method_argument_list(sexp.sexp_body[2])
+        segment ")"
+      end
     end
     
     def emit_method_argument_list(sexp)
@@ -98,44 +102,65 @@ module RubyScribe
     end
     
     def emit_conditional_block(sexp)
-      case sexp.sexp_type
-      when :if
-        sline "if "
-        emit sexp.sexp_body[0]
-        eline
-        
-        indent do
-          sline
-          emit sexp.sexp_body[1]
-          eline
-        end
+      segment "#{sexp.sexp_type} "
+      emit sexp.sexp_body[0]
+      eline
       
-        line "end"
-      else :unless
-        sline "unless "
-        emit sexp.sexp_body[0]
+      indent do
+        sline
+        emit sexp.sexp_body[1]
         eline
-        
+      end
+      
+      if sexp.sexp_body[2]
+        line "else"
         indent do
           sline
-          emit sexp.sexp_body[1]
+          emit sexp.sexp_body[2]
           eline
         end
-        
-        line "end"
       end
+      
+      line "end"
     end
     
     def emit_loop_block(sexp)
+      sline "#{sexp.sexp_type} "
+      emit sexp.sexp_body[0]
+      eline
       
+      indent do
+        sline
+        emit sexp.sexp_body[1]
+        eline
+      end
+      
+      line "end"
     end
     
     def emit_assignment_expression(sexp)
-      
+      segment "#{sexp.sexp_body[0]} = "
+      emit sexp.sexp_body[1]
     end
     
     def emit_block_invocation(sexp)
+      emit sexp.sexp_body[0]
       
+      if sexp.sexp_body[2].sexp_type == :block
+        eline " do"
+        
+        indent do
+          sline
+          emit sexp.sexp_body[2]
+          eline
+        end
+        
+        line "end"
+      else
+        segment " { "
+        emit sexp.sexp_body[2]
+        eline " }"
+      end
     end
     
     def emit_token(sexp)
@@ -143,7 +168,7 @@ module RubyScribe
       when :str
         segment '"' + sexp.sexp_body[0] + '"'
       when :lit
-        segment sexp.sexp_body[0].to_s
+        segment sexp.sexp_body[0].inspect
       when :true
         segment "true"
       when :false
