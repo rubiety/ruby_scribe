@@ -1,22 +1,37 @@
 module RubyScribe
   module EmitterHelpers
+    def indent_level
+      @indents.inject(0) {|b,i| b + i } || 0
+    end
+    
     def indent(level = 2)
-      @original_indent = @indent
-      @indent += level
+      @indents.push(level)
       yield
-      @indent = @original_indent
+      @indents.pop
     end
     
-    def outdent(level = 2)
-      indent(-level)
+    def outdent(level = 2, &block)
+      indent(-level, &block)
     end
     
-    def line
-      
+    def line(s = "")
+      @output << (" " * indent_level)
+      @output << s
+      @output << "\n"
     end
     
-    def multiline
-      
+    def sline(s = "")
+      @output << (" " * indent_level)
+      @output << s
+    end
+    
+    def eline(s = "")
+      @output << s
+      @output << "\n"
+    end
+    
+    def segment(s = "")
+      @output << s
     end
   end
 end

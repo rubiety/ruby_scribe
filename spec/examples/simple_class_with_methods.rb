@@ -1,12 +1,5 @@
 class Animal
-  attr_accessor :name
-  attr_accessor :species
-  
-  def noise
-    "Noise"
-  end
-  
-  def to_s
-    noise
+  if true
+    1
   end
 end
