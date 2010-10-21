@@ -1,0 +1,2 @@
+module RubyScribe
+end

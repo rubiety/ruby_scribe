@@ -1,0 +1,17 @@
+= Ruby Scribe
+
+Seattle RB's ruby_parser is a great tool for parsing ruby code into syntax trees.  Ruby scribe is the reverse of this - a tool for taking an S-expression in Ruby and emit clean code.  It does this by providing a series of rules that intelligently formats code much as a real developer would.
+
+The combination of these two tools allows some other interesting tools to be written - tools that take some Ruby code, do something with it, then emit something else.  
+
+One of example tool (and indeed the entire reason I started this project) is my rspecify tool, which can take a test directory with code written using Test::Unit and convert it into RSpec, automating 99% of what a human developer would normally have to do.  
+
+Future projects using these two gems could be:
+* Automated refactoring tools
+* Tools that take a project and try to apply a set of "coding standards"
+
+== In-Progress
+
+This gem is not useable and is being continually worked on.  Will be released as 0.1.0 once reasonably working and stable.
+
+DO NOT USE!
