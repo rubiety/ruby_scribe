@@ -3,270 +3,158 @@ module RubyScribe
   class Emitter
     include EmitterHelpers
     
-    def initialize
-      @indents = []
-      @output = ""
-    end
-    
-    def emit(sexp)
-      return unless sexp
+    def emit(e)
+      return "" unless e
       
-      case sexp.sexp_type
+      case e.kind
       when :block
-        emit_block(sexp)
+        emit_block(e)
+      when :scope
+        emit_scope(e)
       when :rescue
-        emit_rescue(sexp)
-      when :class
-        emit_class_definition(sexp)
-      when :module
-        emit_module_definition(sexp)
+        emit_rescue(e)
+      when :class, :module
+        emit_class_definition(e)
       when :defn
-        emit_method_definition(sexp)
+        emit_method_definition(e)
       when :call
-        emit_method_call(sexp)
+        emit_method_call(e)
       when :attrasgn
-        emit_attribute_assignment(sexp)
+        emit_attribute_assignment(e)
       when :if, :unless
-        emit_conditional_block(sexp)
+        emit_conditional_block(e)
       when :case
-        emit_case_statement(sexp)
+        emit_case_statement(e)
+      when :when
+        emit_case_when_statement(e)
       when :while, :until
-        emit_loop_block(sexp)
+        emit_loop_block(e)
       when :lasgn, :iasgn
-        emit_assignment_expression(sexp)
+        emit_assignment_expression(e)
       when :op_asgn1
-        emit_optional_assignment_expression(sexp)
+        emit_optional_assignment_expression(e)
       when :iter
-        emit_block_invocation(sexp)
+        emit_block_invocation(e)
       when :defined
-        emit_defined_invocation(sexp)
+        emit_defined_invocation(e)
       when :str, :lit, :lvar, :ivar, :const, :true, :false, :colon2, :hash
-        emit_token(sexp)
+        emit_token(e)
       else
-        emit_unknown_expression(sexp)
-      end
-      @output
+        emit_unknown_expression(e)
+      end || ""
     end
     
     
     protected
     
-    def emit_block(sexp)
-      sexp.sexp_body.each do |child|
-        sline
-        emit(child)
-        eline
-      end
+    def emit_block(e)
+      e.body.map do |child|
+        nl + emit(child)
+      end.join
     end
     
-    def emit_rescue(sexp)
-      eline "begin"
-
-      indent do
-        emit(sexp.sexp_body[0])
-      end
-      
-      resbody = sexp.sexp_body[1].sexp_body
-      line "rescue #{resbody[0].inspect}"
-      
-      indent do
-        emit(resbody[1])
-      end
-      
-      line "end"
+    def emit_scope(e)
+      emit(e.body.first)
     end
     
-    def emit_class_definition(sexp)
-      line "class #{sexp.sexp_body[0]}"
-      
-      indent do
-        emit sexp.sexp_body[2].sexp_body[0]
-      end
-      
-      line "end"
-      line
+    def emit_rescue(e)
+      "begin" + indent { emit(e.body[0]) } +
+      nl("rescue") + indent { emit(e.body[1][1]) } + 
+      nl("end")
     end
     
-    def emit_module_definition(sexp)
-      line
-      line "module #{sexp.sexp_body[0]}"
-      
-      indent do
-        emit sexp.sexp_body[1].sexp_body[0]
-      end
-      
-      line "end"
+    def emit_class_definition(e)
+      nl + nl("#{e.kind} #{e.body.first}") + indent { emit(e.body[2]) } + nl("end")
     end
     
-    def emit_method_definition(sexp)
-      line
-      line "def #{sexp.sexp_body[0]}"
-      
-      indent do
-        sexp.sexp_body[2].sexp_body[0].sexp_body.each do |child|
-          sline
-          emit(child)
-          eline
-        end
-        line
-      end
-      
-      line "end"
+    def emit_method_definition(e)
+      nl("def #{e.body[1]}") + 
+      indent { emit(e.body[2]) } + 
+      nl("end") + nl
     end
     
-    def emit_method_call(sexp)
-      segment "#{sexp.sexp_body[1]}"
-      
-      if sexp.sexp_body[2].sexp_body[0]
-        segment "("
-        emit_argument_list(sexp.sexp_body[2])
-        segment ")"
-      end
+    def emit_method_call(e)
+      (e.body.second || "") + 
+      "(#{emit(e.body[2])})"
     end
     
-    def emit_attribute_assignment(sexp)
-      segment sexp.sexp_body[0][0].to_s
-      segment "."
-      segment sexp.sexp_body[1].to_s.gsub(/=$/, "")
-      segment " = "
-      emit_argument_list(sexp.sexp_body[2])
+    def emit_attribute_assignment(e)
+      e.body[0][0].to_s + "." + e.body[1].to_s.gsub(/=$/, "") + " = " + emit(e.body[2])
     end
     
-    def emit_argument_list(sexp)
-      sexp.sexp_body.each_with_index do |arg, i|
-        segment ", " unless i == 0
-        emit(arg)
-      end
-    end
-    
-    def emit_conditional_block(sexp)
-      segment "#{sexp.sexp_type} "
-      emit sexp.sexp_body[0]
-      eline
-      
-      indent do
-        sline
-        emit sexp.sexp_body[1]
-        eline
-      end
-      
-      if sexp.sexp_body[2]
-        line "else"
-        indent do
-          sline
-          emit sexp.sexp_body[2]
-          eline
+    def emit_argument_list(e)
+      "".tap do |s|
+        e.body.each_with_index do |arg, i|
+          segment ", " unless i == 0
+          s << emit(arg)
         end
       end
+    end
+    
+    def emit_conditional_block(e)
+      "#{e.kind} #{e.body.first}" + emit(e.body[1]) + 
+      nl("else") + indent { emit(e.body[2]) } + 
+      nl("end")
+    end
+    
+    def emit_case_statement(e)
+      "case #{emit(e.body.first)}" + e.body[1..-1].map {|c| emit(c) } + nl("end")
+    end
+    
+    def emit_case_when_statement(e)
+      nl("when #{emit(e.body.first)}") + indent { emit(e.body[1]) }
+    end
+    
+    def emit_loop_block(e)
+      "#{e.kind} #{e.body.first}" + 
+      indent { emit(e.body[1]) } + 
+      nl("end")
+    end
+    
+    def emit_assignment_expression(e)
+      "#{e.body[0]} = #{emit(e.body[1])}"
+    end
+    
+    def emit_optional_assignment_expression(e)
       
-      sline "end"
     end
     
-    def emit_case_statement(sexp)
-      segment "case "
-      emit sexp.sexp_body[0]
-      eline
-      sexp.sexp_body[1..-1].each do |child|
-        emit_case_when_statement child
-      end
+    def emit_block_invocation(e)
+      e.body[0] + " do" + 
+      indent { emit(e.body[2]) } + 
+      nl("end")
     end
     
-    def emit_case_when_statement(sexp)
-      return unless sexp
-      
-      sline "when "
-      emit sexp.sexp_body[0]
-      eline
-      emit sexp.sexp_body[1]
+    def emit_defined_invocation(e)
+      "defined?(:#{e.body[0]})"
     end
     
-    def emit_loop_block(sexp)
-      sline "#{sexp.sexp_type} "
-      emit sexp.sexp_body[0]
-      eline
-      
-      indent do
-        sline
-        emit sexp.sexp_body[1]
-        eline
-      end
-      
-      line "end"
-    end
-    
-    def emit_assignment_expression(sexp)
-      segment "#{sexp.sexp_body[0]} = "
-      emit sexp.sexp_body[1]
-    end
-    
-    def emit_optional_assignment_expression(sexp)
-      emit sexp.sexp_body[0]
-      segment "["
-      emit_argument_list sexp.sexp_body[1]
-      segment "] "
-      segment sexp.sexp_body[2].to_s
-      segment "= "
-      emit sexp.sexp_body[3]
-    end
-    
-    def emit_block_invocation(sexp)
-      emit sexp.sexp_body[0]
-      
-      if sexp.sexp_body[2].sexp_type == :block
-        eline " do"
-        
-        indent do
-          sline
-          emit sexp.sexp_body[2]
-          eline
-        end
-        
-        line "end"
-      else
-        segment " { "
-        emit sexp.sexp_body[2]
-        eline " }"
-      end
-    end
-    
-    def emit_defined_invocation(sexp)
-      segment "defined?(:"
-      emit sexp.sexp_body[0]
-      segment ")"
-    end
-    
-    def emit_token(sexp)
-      case sexp.sexp_type
+    def emit_token(e)
+      case e.kind
       when :str
-        segment '"' + sexp.sexp_body[0] + '"'
+        '"' + e.body[0] + '"'
       when :lit
-        segment ":" + sexp.sexp_body[0].to_s
+        ":" + e.body[0].to_s
       when :const
-        segment sexp.sexp_body[0].to_s
+        e.body[0].to_s
       when :lvar
-        segment sexp.sexp_body[0].to_s
+        e.body[0].to_s
       when :ivar
-        segment sexp.sexp_body[0].to_s
+        e.body[0].to_s
       when :true
-        segment "true"
+        "true"
       when :false
-        segment "false"
+        "false"
       when :colon2
-        emit sexp.sexp_body[0]
-        segment "::"
-        segment sexp.sexp_body[1].to_s
+        "#{emit(e.body[0])}::#{e.body[1].to_s}"
       when :hash
-        sexp.sexp_body.in_groups_of(2) do |group|
-          emit(group[0])
-          segment " => "
-          emit(group[1])
-        end
+        ":hash => :value"
       else
-        segment sexp.sexp_body.to_s
+        e.body.inspect
       end
     end
     
-    def emit_unknown_expression(sexp)
+    def emit_unknown_expression(e)
       
     end
   end
