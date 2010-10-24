@@ -7,18 +7,18 @@ namespace :scribe do
     require "pp"
     
     original_file = File.read(File.join(File.dirname(__FILE__), "../../spec/examples/simple_class_with_methods.rb"))
-    puts "Original File"
-    puts "======================================"
-    puts original_file
-    
-    puts
-    puts
-    
     sexp = RubyParser.new.parse(original_file)
     
     puts "Parsed S-Expresssion"
     puts "======================================"
     pp sexp
+    puts
+    
+    puts "Original File"
+    puts "======================================"
+    puts original_file
+    
+    puts
     puts
     
     puts "Parsed File"

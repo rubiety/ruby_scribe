@@ -18,5 +18,11 @@ module RubyScribe
     def nl(text = "")
       "\n" + (" " * indent_level) + text
     end
+    
+    def literalize_strings(sexps)
+      sexps.map do |sexp|
+        sexp.is_a?(Sexp) && sexp.kind == :str ? sexp.body[0] : sexp
+      end
+    end
   end
 end
