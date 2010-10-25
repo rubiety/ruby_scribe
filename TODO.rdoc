@@ -1,7 +1,2 @@
 = TODO
 
-* Implement context
-* Order of Operations: "one || (two && three)" should not be "one || two && three"
-* Elsif implementation
-
-* Capability to indent beneath protected and private blocks?  I don't like that, but...

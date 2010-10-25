@@ -1,7 +1,7 @@
 require "thor"
 
 module RubyScribe
-  class Runner < Thor    
+  class Runner < Thor
     desc :cat, "Takes a single ruby file, parses it, and outputs the scribed version."
     def cat(path)
       sexp = RubyParser.new.parse(File.read(path))

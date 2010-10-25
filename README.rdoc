@@ -1,16 +1,43 @@
 = Ruby Scribe
 
-Seattle RB's ruby_parser is a great tool for parsing ruby code into syntax trees.  Ruby scribe is the reverse of this - a tool for taking an S-expression in Ruby and emitting clean code.  It does this by providing a series of rules that intelligently formats code much as a real developer would.
+== Introduction
 
-The combination of these two tools allows some other interesting tools to be written.  One of example tool (and indeed the entire reason I started this project) is my rspecify tool, which can take a test directory with code written using Test::Unit and convert it into RSpec, automating 99% of what a human developer would normally have to do.  
+Seattle RB's ruby_parser is a great tool for parsing ruby code into syntax trees.  Ruby Scribe is the reverse of this - a tool for taking an S-expression in Ruby and emitting clean code.  It does this by providing a series of rules that intelligently formats code much as a real developer would.
+
+== Applications
+
+The combination of these two tools allows some other interesting tools to be written.  One of example tool (and indeed the entire reason I started this project) is my rspecify tool, which can take a test directory with code written using Test::Unit and, via a Ruby Scribe Preprocessor, convert it into RSpec, automating 99% of what a human developer would normally have to do.
 
 Future projects using these two gems could be:
 * Automated refactoring tools
 * Tools that take a project and try to apply a set of "coding standards"
 * Tools that produce metrics on how much your code differs from the project's "coding standards" implementation.
 
-== In-Progress
+== Usage
 
-This gem is not useable and is being continually worked on.  Will be released as 0.1.0 once reasonably working and stable.
+The entire project simply takes an incoming Sexp object (from the ruby_parser project) and emits a single string.  To do this just use an Emitter:
+  
+  RubyScribe::Emitter.new.emit(sexp)  # => "module Something..."
 
-DO NOT USE!
+== Emitter Implementation
+
+The +Emitter+ class is nothing but a bunch of recursion.  The main emit method is a big case block to offload handling of individual types to separate methods which handle and compose a big string, all through recursion.  
+
+To extend or implement your own Emitter, just subclass +RubyScribe::Emitter+ and override the necessary methods.
+
+== Preprocess Implementation
+
+This feature is not developed yet, but is intended on presenting a standard recursion-based class for implementing transformations of S-expressions.
+
+== Known Issues
+
+* Anything involving order of operations currently much surround the expression in ( ).  Will probably expand later to omit this when order of operations is implied, but this requires a context stack.
+* Elsif currently does not work as you'd expect and instead embeds another if block inside of the outer one's "else".  This is how if statements are presented via ruby_parser.  
+* Some of the more obscure types are not implemented.
+* Only comments on methods, class, and module declarations are retained.  This is actually a limitation of ruby_parser as for whatever reason 
+in-line comments cannot be parsed correctly.
+
+== Future Features
+
+* Maintain a context stack so emit methods can emit different content dependent on context in the stack
+* Configuration options for things such as block style, preference for quote style, etc.

@@ -326,9 +326,9 @@ module RubyScribe
     end
     
     def emit_binary_expression(e)
-      emit(e.body[0]) + " " + 
+      "(" + emit(e.body[0]) + " " + 
       (e.kind == :and ? "&&" : "||") + 
-      " " + emit(e.body[1])
+      " " + emit(e.body[1]) + ")"
     end
     
     def emit_block_invocation(e)
