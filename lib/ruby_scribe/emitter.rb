@@ -337,7 +337,7 @@ module RubyScribe
     
     def emit_block_invocation_body(e)
       # If it's on the same line, it should probably be shorthand form:
-      if e.line == e.body[2].line
+      if e.line == e.body[2].try(:line)
         " {#{emit_block_invocation_arguments(e)} #{emit(e.body[2])} }"
       else
         " do #{emit_block_invocation_arguments(e)}".gsub(/ +$/, '') + 
@@ -359,6 +359,8 @@ module RubyScribe
         e.body[0].body.map {|c| emit_assignments_as_arguments(c) }.join(", ")
       elsif e.kind == :lasgn
         e.body[0].to_s
+      elsif e.kind == :splat
+        "*" + emit_assignments_as_arguments(e.body[0])
       end
     end
     

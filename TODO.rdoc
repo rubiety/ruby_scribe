@@ -1,7 +1,6 @@
 = TODO
 
 * Implement context
-* Splatting block arguments
 * Order of Operations: "one || (two && three)" should not be "one || two && three"
 * Elsif implementation
 * Regular "alias" calls
