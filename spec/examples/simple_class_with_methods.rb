@@ -1,3 +1,1 @@
-do_something do |*args|
-  
-end
+alias :something :something_else

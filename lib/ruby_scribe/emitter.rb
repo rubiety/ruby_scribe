@@ -402,6 +402,8 @@ module RubyScribe
         "retry"
       when :return
         "return #{emit_argument_list(e)}".strip
+      when :alias
+        "alias #{emit(e.body[0])} #{emit(e.body[1])}"
       when :block_pass
         "&" + emit(e.body[0])
       when :splat
