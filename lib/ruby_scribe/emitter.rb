@@ -371,7 +371,7 @@ module RubyScribe
     def emit_token(e)
       case e.kind
       when :str
-        "'" + e.body[0] + "'"
+        '"' + e.body[0] + '"'
       when :lit
         e.body[0].inspect
       when :const

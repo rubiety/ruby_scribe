@@ -4,6 +4,48 @@
 
 Seattle RB's ruby_parser is a great tool for parsing ruby code into syntax trees.  Ruby Scribe is the reverse of this - a tool for taking an S-expression in Ruby and emitting clean code.  It does this by providing a series of rules that intelligently formats code much as a real developer would.
 
+== Example
+
+Imagine this crappily-formatted Ruby code:
+  
+  module RubyScribe
+
+
+    # My Comment
+    class Sample  < Base; 
+         def method; do_something_here; end
+
+     if(new_record?) then
+         puts "Yes"
+      else
+             puts 'No'
+        end
+    end
+   end
+
+Parse that with RubyParser, then emit it with RubyScribe:
+  
+  sexp = RubyParser.new.parse(File.read("bad_code.rb"))
+  RubyScribe::Emitter.new.emit(sexp)
+
+And out pops this:
+  
+  module RubyScribe
+    # My Comment
+    class Sample < Base
+      def method
+        do_something_here
+      end
+
+      if new_record?
+        puts "Yes"
+      else
+        puts "No"
+      end
+    end
+  end
+
+
 == Applications
 
 The combination of these two tools allows some other interesting tools to be written.  One of example tool (and indeed the entire reason I started this project) is my rspecify tool, which can take a test directory with code written using Test::Unit and, via a Ruby Scribe Preprocessor, convert it into RSpec, automating 99% of what a human developer would normally have to do.
