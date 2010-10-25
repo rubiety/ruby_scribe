@@ -23,6 +23,25 @@ Imagine this crappily-formatted Ruby code:
     end
    end
 
+Here is the syntax tree for the above:
+  
+  s(:module,
+   :RubyScribe,
+   s(:scope,
+    s(:class,
+     :Sample,
+     s(:const, :Base),
+     s(:scope,
+      s(:block,
+       s(:defn,
+        :method,
+        s(:args),
+        s(:scope, s(:block, s(:call, nil, :do_something_here, s(:arglist))))),
+       s(:if,
+        s(:call, nil, :new_record?, s(:arglist)),
+        s(:call, nil, :puts, s(:arglist, s(:str, "Yes"))),
+        s(:call, nil, :puts, s(:arglist, s(:str, "No")))))))))
+
 Parse that with RubyParser, then emit it with RubyScribe:
   
   sexp = RubyParser.new.parse(File.read("bad_code.rb"))
