@@ -85,7 +85,7 @@ module RubyScribe
     end
     
     def emit_block_member_prefix(members, current_member)
-      nl("# #{current_member.line}")
+      ""
     end
     
     def emit_block_member_suffix(members, current_member)

@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require "rubygems"
+
+$:.unshift(File.expand_path(File.join(File.basename(__FILE__), "..", "lib")))
+
+require "ruby_scribe"
+require "ruby_scribe/runner"
+
+RubyScribe::Runner.start
+
+
+# TODO: Implement version parsing like so:
+# 
+# version = ">= 0"
+# 
+# if ARGV.first =~ /^_(.*)_$/ and Gem::Version.correct? $1 then
+#   version = $1
+#   ARGV.shift
+# end
+# 
+# gem 'bundler', version
+# load Gem.bin_path('bundler', 'bundle', version)

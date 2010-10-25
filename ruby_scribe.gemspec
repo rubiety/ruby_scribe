@@ -17,5 +17,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = s.name
   s.required_rubygems_version = ">= 1.3.4"
   
+  s.add_dependency("ruby_parser", ["~> 2.0.4"])
+  s.add_dependency("thor", ["~> 0.13"])
   s.add_development_dependency("rspec", ["~> 2.0"])
 end
