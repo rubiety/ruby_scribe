@@ -1,4 +1,5 @@
 require "thor"
+require "ruby_scribe"
 
 module RubyScribe
   class Runner < Thor

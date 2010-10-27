@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
   s.summary     = "Generates formatted ruby code from S-expressions (like from ruby_parser)."
   s.description = "A ruby formatting tool that takes S-expression as input and intelligently outputs formatted Ruby code."
   
+  s.executables = ["rubyscribe"]
   s.files        = Dir["{lib,spec}/**/*", "[A-Z]*", "init.rb"]
   s.require_path = "lib"
   
