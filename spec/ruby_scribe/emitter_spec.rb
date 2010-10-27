@@ -15,15 +15,11 @@ describe RubyScribe::Emitter do
     end
     
     specify "namespaced class should emit itself" do
-      pending do
-        %{class Scribe::Animal\n  \nend}.should emit_itself
-      end
+      %{class Scribe::Animal\n  \nend}.should emit_itself
     end
     
     specify "eigenclass should emit itself" do
-      pending do
-        %{class << self\n  \nend}.should emit_itself
-      end
+      %{class << self\n  \nend}.should emit_itself
     end
   end
   
@@ -33,9 +29,7 @@ describe RubyScribe::Emitter do
     end
     
     specify "namespaced class should emit itself" do
-      pending do
-        %{module Scribe::Animal\n  \nend}.should emit_itself
-      end
+      %{module Scribe::Animal\n  \nend}.should emit_itself
     end
   end
   

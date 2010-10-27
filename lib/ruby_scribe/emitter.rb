@@ -141,21 +141,21 @@ module RubyScribe
     
     def emit_class_definition(e)
       emit_comments(e.comments) + 
-      "#{e.kind} #{e.body[0]}" + 
+      "#{e.kind} #{emit(e.body[0])}" + 
       (e.body[1] ? " < #{emit(e.body[1])}" : "") +
       indent { nl + emit(e.body[2]) } + 
       nl("end")
     end
     
     def emit_self_class_definition(e)
-      "class << #{e.body[0]}" + 
+      "class << #{emit(e.body[0])}" + 
       indent { nl + emit(e.body[1]) } + 
       nl("end")
     end
     
     def emit_module_definition(e)
       emit_comments(e.comments) +
-      "#{e.kind} #{e.body[0]}" + 
+      "module #{emit(e.body[0])}" + 
       indent { nl + emit(e.body[1]) } + 
       nl("end")
     end
