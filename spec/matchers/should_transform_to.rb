@@ -18,4 +18,8 @@ RSpec::Matchers.define :transform_to do |desc, expected|
   description do
     "transform with to #{desc}"
   end
+  
+  def transformed_as_ruby
+    RubyScribe::Emitter.new.emit(@transformed)
+  end
 end
