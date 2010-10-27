@@ -22,6 +22,8 @@ module RubyScribe
         emit_scope(e)
       when :rescue
         emit_rescue(e)
+      when :resbody
+        emit_rescue_body(e)
       when :module
         emit_module_definition(e)
       when :class
@@ -116,15 +118,25 @@ module RubyScribe
     end
     
     def emit_rescue(e)
-      "begin" + indent { nl + emit(e.body[0]) } +
-      nl("rescue ") + indent { nl + emit(e.body[1].body[1]) } + 
+      block = e.body.size == 1 ? nil : e.body[0]
+      resbody = e.body.size == 1 ? e.body[0] : e.body[1]
+      
+      "begin" + indent { nl + emit(block) } +
+      emit(resbody) +
       nl("end")
     end
     
+    def emit_rescue_body(e)
+      nl("rescue ".gsub(/ $/, '')) + 
+      indent { nl + emit(e.body[1]) }
+    end
+    
     def emit_method_rescue(e)
-      emit(e.body[0]) + 
-      indent(-2) { nl("rescue ") } + 
-      nl + emit(e.body[1].body[1])
+      block = e.body.size == 1 ? nil : e.body[0]
+      resbody = e.body.size == 1 ? e.body[0] : e.body[1]
+      
+      emit(block) + 
+      indent(-2) { emit(resbody) }
     end
     
     def emit_class_definition(e)
@@ -251,7 +263,7 @@ module RubyScribe
     
     def determine_if_type(e)
       if e.body[1] && e.body[2] && e.body[0].line == e.body[1].try(:line) && e.line == e.body[2].try(:line)
-        :terinary
+        :ternary
       elsif e.body[1] && !e.body[2] && e.line == e.body[1].line && e.body[1].kind != :block
         :dangling_if
       elsif !e.body[1] && e.body[2] && e.line == e.body[2].line && e.body[2].kind != :block
@@ -265,7 +277,7 @@ module RubyScribe
     
     def emit_conditional_block(e)
       case determine_if_type(e)
-      when :terinary
+      when :ternary
         "#{emit(e.body[0])} ? #{emit(e.body[1] || s(:nil))} : #{emit(e.body[2] || s(:nil))}"
       when :dangling_if
         "#{emit(e.body[1])} if #{emit(e.body[0])}"
@@ -282,7 +294,7 @@ module RubyScribe
     end
     
     def emit_case_statement(e)
-      "case #{emit(e.body.first)}" + e.body[1..-2].map {|c| emit(c) }.join + emit_case_else_statement(e.body[-1]) + nl("end")
+      "case #{emit(e.body[0])}".gsub(/ $/, '') + e.body[1..-2].map {|c| emit(c) }.join + emit_case_else_statement(e.body[-1]) + nl("end")
     end
     
     def emit_case_when_statement(e)
@@ -302,8 +314,8 @@ module RubyScribe
     end
     
     def emit_loop_block(e)
-      "#{e.kind} #{e.body.first}" + 
-      indent { emit(e.body[1]) } + 
+      "#{e.kind} #{emit(e.body[0])}" + 
+      indent { nl + emit(e.body[1]) } + 
       nl("end")
     end
     
