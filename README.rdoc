@@ -93,8 +93,7 @@ This feature is not developed yet, but is intended on presenting a standard recu
 == Known Issues
 
 * Since there are still some holes in the implementation, any s-expression type that is unknown will cause the following to be emitted: "## RubyScribe-UNKNOWN: :type ##".  Once stable any unknown type will instead throw an exception.
-* Anything involving order of operations currently much surround the expression in ( ).  Will probably expand later to omit this when order of operations is implied, but this requires a context stack.
-* Elsif currently does not work as you'd expect and instead embeds another if block inside of the outer one's "else".  This is how if statements are presented via ruby_parser.  
+* Anything involving order of operations currently much surround the expression in ( ).  Will probably expand later to omit this when order of operations is implied, but this requires a context stack.  There may actually be other issues related to order of operations.  To do this properly requires maintaining context of operations and, starting with the case for parenthesis, remove parentheses when the emitter determines that the order of operations is implied by Ruby syntax rules.  Right now the emitter more or less assumes order of operations is implied and does not use parantheses, except in the cases of || and && in which case it does.
 * Some of the more obscure types are not implemented.
 * Only comments on methods, class, and module declarations are retained.  This is actually a limitation of ruby_parser as for whatever reason 
 in-line comments cannot be parsed correctly.

@@ -5,8 +5,23 @@ module RubyScribe
   class Emitter
     include EmitterHelpers
     
-    cattr_accessor :methods_without_parenthesis
-    self.methods_without_parenthesis = %w(require gem puts attr_accessor cattr_accessor delegate alias_method alias)
+    class_inheritable_accessor :methods_without_parenthesis
+    self.methods_without_parenthesis = %w(
+      attr_accessor attr_reader attr_writer
+      alias alias_method alias_attribute
+      gem require extend include raise
+      delegate autoload raise
+      puts
+    )
+    
+    class_inheritable_accessor :grouped_methods
+    self.grouped_methods = %w(require attr_accessor autoload)
+    
+    class_inheritable_accessor :long_hash_key_size
+    self.long_hash_key_size = 5
+    
+    class_inheritable_accessor :default_indent
+    self.default_indent = 2
     
     SYNTACTIC_METHODS = ['+', '-', '<<', '==', '===', '>', '<']
     
@@ -20,6 +35,8 @@ module RubyScribe
         emit_block(e)
       when :scope
         emit_scope(e)
+      when :ensure
+        emit_rescue_ensure_wrapper(e)
       when :rescue
         emit_rescue(e)
       when :resbody
@@ -42,6 +59,8 @@ module RubyScribe
         emit_argument_list(e)
       when :attrasgn
         emit_attribute_assignment(e)
+      when :cvasgn, :gasgn
+        emit_class_variable_assignment(e)
       when :masgn
         emit_multiple_assignment(e)
       when :cdecl
@@ -58,6 +77,8 @@ module RubyScribe
         emit_for_block(e)
       when :lasgn, :iasgn
         emit_assignment_expression(e)
+      when :op_asgn1, :op_asgn2
+        emit_optional_assignment_expression(e)
       when :op_asgn_or
         emit_optional_assignment_or_expression(e)
       when :op_asgn_and
@@ -110,6 +131,14 @@ module RubyScribe
         return nl
       end
       
+      if previous_member.kind == :call && self.class.grouped_methods.include?(previous_member.body[1].to_s) && (current_member.kind != :call || (current_member.kind == :call && current_member.body[1] != previous_member.body[1]))
+        return nl
+      end
+      
+      if current_member.kind == :call && self.class.grouped_methods.include?(current_member.body[1].to_s) && (previous_member.kind != :call || (previous_member.kind == :call && previous_member.body[1] != current_member.body[1]))
+        return nl
+      end
+      
       ""
     end
     
@@ -117,13 +146,30 @@ module RubyScribe
       emit(e.body[0])
     end
     
-    def emit_rescue(e)
-      block = e.body.size == 1 ? nil : e.body[0]
-      resbody = e.body.size == 1 ? e.body[0] : e.body[1]
+    def emit_rescue_ensure_wrapper(e)
+      rescue_sexp = e.body[0]
+      block = rescue_sexp.body.size == 1 ? nil : rescue_sexp.body[0]
+      resbody = rescue_sexp.body.size == 1 ? rescue_sexp.body[0] : rescue_sexp.body[1]
+      ensure_sexp = e.body[1]
       
       "begin" + indent { nl + emit(block) } +
       emit(resbody) +
+      nl("ensure") + 
+      indent { nl + emit(ensure_sexp) } +
       nl("end")
+    end
+    
+    def emit_rescue(e, force_long = false)
+      block = e.body.size == 1 ? nil : e.body[0]
+      resbody = e.body.size == 1 ? e.body[0] : e.body[1]
+      
+      if !force_long && e.line == resbody.line && block.kind != :block && resbody && resbody.body[1] && resbody.body[1].kind != :block
+        "#{emit(block)} rescue #{emit(resbody.body[1])}"
+      else
+        "begin" + indent { nl + emit(block) } +
+        emit(resbody) +
+        nl("end")
+      end
     end
     
     def emit_rescue_body(e)
@@ -250,6 +296,10 @@ module RubyScribe
       emit(e.body[0]) + "." + e.body[1].to_s.gsub(/=$/, "") + " = " + emit(e.body[2])
     end
     
+    def emit_class_variable_assignment(e)
+      emit(e.body[0]) + " = " + emit(e.body[1])
+    end
+    
     def emit_multiple_assignment(e)
       left = e.body[0].body
       right = e.body[1].body
@@ -285,11 +335,22 @@ module RubyScribe
         "#{emit(e.body[2])} unless #{emit(e.body[0])}"
       when :block_if
         "if #{emit(e.body[0])}" + indent { nl + emit(e.body[1]) } + 
-        (e.body[2] ? (nl("else") + indent { nl + emit(e.body[2]) }) : "") + 
+        emit_conditional_else_block(e.body[2]) +  
         nl("end")
       when :block_unless
         "unless #{emit(e.body[0])}" + indent { nl + emit(e.body[2]) } +
         nl("end")
+      end
+    end
+    
+    def emit_conditional_else_block(e)
+      return "" unless e
+      
+      if e.kind == :if
+        nl("elsif #{emit(e.body[0])}") + indent { nl + emit(e.body[1]) } + 
+        emit_conditional_else_block(e.body[2])
+      else
+        nl("else") + indent { nl + emit(e) }
       end
     end
     
@@ -329,6 +390,10 @@ module RubyScribe
       "#{e.body[0]} = #{emit(e.body[1])}"
     end
     
+    def emit_optional_assignment_expression(e)
+      emit(e.body[0]) + "[#{emit(e.body[1])}] #{emit(e.body[2])}= " + emit(e.body[3])
+    end
+    
     def emit_optional_assignment_or_expression(e)
       emit(e.body[0]) + " ||= " + emit(e.body[1].body[1])
     end
@@ -360,7 +425,7 @@ module RubyScribe
     
     def emit_block_invocation_arguments(e)
       if e.body[1]
-        "|" + emit_assignments_as_arguments(e.body[1]) + "| "
+        "|" + emit_assignments_as_arguments(e.body[1]) + "|"
       else
         ""
       end
@@ -392,6 +457,8 @@ module RubyScribe
         e.body[0].to_s
       when :ivar
         e.body[0].to_s
+      when :cvar
+        e.body[0].to_s
       when :not
         "!" + emit(e.body[0])
       when :true
@@ -421,15 +488,23 @@ module RubyScribe
       when :splat
         "*" + emit(e.body[0])
       when :colon2
-        "#{emit(e.body[0])}::#{e.body[1].to_s}"
+        "#{emit(e.body[0])}::#{emit(e.body[1])}"
+      when :colon3
+        "::#{emit(e.body[0])}"
+      when :dot2
+        "#{emit(e.body[0])}..#{emit(e.body[1])}"
       when :hash
         "{" + emit_hash_body(e) + "}"
       when :array
         "[" + e.body.map {|c| emit(c)}.join(", ") + "]"
+      when :nth_ref, :back_ref
+        "$" + e.body[0].to_s
       when :gvar
         e.body[0].to_s
       when :dstr
         '"' + literalize_strings(e.body).map {|c| emit(c) }.join + '"'
+      when :dregx
+        '/' + literalize_strings(e.body).map {|c| emit(c) }.join + '/'
       when :evstr
         '#{' + emit(e.body[0]) + '}'
       when :xstr
@@ -447,8 +522,14 @@ module RubyScribe
       end
     end
     
-    def emit_hash_body(e)
-      e.body.in_groups_of(2).map {|g| "#{emit(g[0])} => #{emit(g[1])}" }.join(", ")
+    def emit_hash_body(e, force_short = false)
+      grouped = e.body.in_groups_of(2)
+      
+      if !force_short && grouped.size >= self.class.long_hash_key_size
+        indent(2) { nl + grouped.map {|g| "#{emit(g[0])} => #{emit(g[1])}" }.join("," + nl) } + nl
+      else
+        grouped.map {|g| "#{emit(g[0])} => #{emit(g[1])}" }.join(", ")
+      end
     end
     
     def emit_unknown_expression(e)

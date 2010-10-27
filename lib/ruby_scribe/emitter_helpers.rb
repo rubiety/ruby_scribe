@@ -8,7 +8,9 @@ module RubyScribe
       indents.inject(0) {|b,i| b + i } || 0
     end
     
-    def indent(level = 2)
+    def indent(level = nil)
+      level = self.class.default_indent if level.nil?
+      
       indents.push(level)
       output = yield
       indents.pop
