@@ -452,7 +452,7 @@ module RubyScribe
     end
     
     def emit_unknown_expression(e)
-      nl("## UNKNOWN: #{e.kind} ##")
+      nl("## RubyScribe-UNKNOWN: #{e.kind} ##")
     end
   end
 end

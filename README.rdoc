@@ -92,6 +92,7 @@ This feature is not developed yet, but is intended on presenting a standard recu
 
 == Known Issues
 
+* Since there are still some holes in the implementation, any s-expression type that is unknown will cause the following to be emitted: "## RubyScribe-UNKNOWN: :type ##".  Once stable any unknown type will instead throw an exception.
 * Anything involving order of operations currently much surround the expression in ( ).  Will probably expand later to omit this when order of operations is implied, but this requires a context stack.
 * Elsif currently does not work as you'd expect and instead embeds another if block inside of the outer one's "else".  This is how if statements are presented via ruby_parser.  
 * Some of the more obscure types are not implemented.
