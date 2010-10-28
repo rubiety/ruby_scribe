@@ -20,7 +20,7 @@ module RubyScribe
     class Eachifier < Transformer
       def transform(e)
         if e.is_a?(Sexp) && e.kind == :for
-          transform_for_to_each(e)
+          super transform_for_to_each(e)
         else
           super
         end

@@ -30,7 +30,7 @@ module RubyScribe
     class Tapifier < Transformer
       def transform(e)
         if matches_method_to_use_tap?(e)
-          transform_method_to_use_tap(e)
+          super transform_method_to_use_tap(e)
         else
           super
         end

@@ -16,7 +16,7 @@ module RubyScribe
     class BlockMethodToProcifier < Transformer
       def transform(e)
         if matches_block_to_use_tap?(e)
-          transform_block_to_use_tap(e)
+          super transform_block_to_use_tap(e)
         else
           super
         end
