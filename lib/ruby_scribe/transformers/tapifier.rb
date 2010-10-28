@@ -29,10 +29,14 @@ module RubyScribe
     # 
     class Tapifier < Transformer
       def transform(e)
+        super(transform_tapify_candidates(e))
+      end
+      
+      def transform_tapify_candidates(e)
         if matches_method_to_use_tap?(e)
-          super transform_method_to_use_tap(e)
+          transform_method_to_use_tap(e)
         else
-          super
+          e
         end
       end
       

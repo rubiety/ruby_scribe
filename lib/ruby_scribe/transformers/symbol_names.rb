@@ -39,7 +39,7 @@ module RubyScribe
       end
       
       def transform(e)
-        super transform_symbols(e)
+        super(transform_symbols(e))
       end
       
       def transform_symbols(e)

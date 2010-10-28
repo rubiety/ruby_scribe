@@ -15,15 +15,19 @@ module RubyScribe
     #    
     class BlockMethodToProcifier < Transformer
       def transform(e)
-        if matches_block_to_use_tap?(e)
-          super transform_block_to_use_tap(e)
+        super transform_block_methods_to_proc(e)
+      end
+      
+      def transform_block_methods_to_proc(e)
+        if sexp?(e) && matches_block_to_use_tap?(e)
+          transform_block_to_use_tap(e)
         else
-          super
+          e
         end
       end
       
       def matches_block_to_use_tap?(e)
-        e.is_a?(Sexp) && e.kind == :iter &&  # Calls block
+        e.kind == :iter &&  # Calls block
         e.body[2] && e.body[2].kind == :call &&  # Body of block is a simple method call
         e.body[2].body[0].kind == :lvar &&  # Simple method call is on a local variable
         e.body[1].kind == :lasgn &&  # Block parameter is a single assign
