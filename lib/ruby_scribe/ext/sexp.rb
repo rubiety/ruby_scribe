@@ -1,9 +1,3 @@
 class Sexp
-  def kind
-    sexp_type.to_sym
-  end
-  
-  def body
-    sexp_body
-  end
+  include RubyScribe::SexpHelpers
 end

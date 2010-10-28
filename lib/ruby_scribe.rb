@@ -2,6 +2,7 @@ require "rubygems"
 require "active_support"
 require "ruby_parser"
 
+require "ruby_scribe/sexp_helpers"
 require "ruby_scribe/emitter_helpers"
 require "ruby_scribe/emitter"
 require "ruby_scribe/transformer_helpers"

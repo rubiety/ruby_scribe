@@ -65,7 +65,7 @@ module RubyScribe
         emit_multiple_assignment(e)
       when :cdecl
         emit_constant_declaration(e)
-      when :if, :unless
+      when :if
         emit_conditional_block(e)
       when :case
         emit_case_statement(e)
