@@ -1,6 +1,6 @@
 require "spec_helper"
 
-describe RubyScribe::Transformer do
+describe RubyScribe::Transformer.new do
   
   describe "a for block" do
     subject { %{

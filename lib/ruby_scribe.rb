@@ -4,6 +4,7 @@ require "ruby_parser"
 
 require "ruby_scribe/emitter_helpers"
 require "ruby_scribe/emitter"
+require "ruby_scribe/transformer_helpers"
 require "ruby_scribe/transformer"
 require "ruby_scribe/ext/sexp"
 

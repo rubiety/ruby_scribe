@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe RubyScribe::Transformers::Tapifier do
+describe RubyScribe::Transformers::Tapifier.new do
   
   describe "a method setting up and returning a temporary variable" do
     subject {%{

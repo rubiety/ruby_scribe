@@ -3,7 +3,7 @@ RSpec::Matchers.define :transform_to do |desc, expected|
     actual_as_sexp = actual.is_a?(String) ? RubyParser.new.parse(actual) : actual
     expected_as_sexp = expected.is_a?(String) ? RubyParser.new.parse(expected) : expected
     
-    @transformed = described_class.new.transform(actual_as_sexp)
+    @transformed = described_class.transform(actual_as_sexp)
     @transformed == expected_as_sexp
   end
   
