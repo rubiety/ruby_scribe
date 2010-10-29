@@ -72,6 +72,47 @@ module RubyScribe
         sexp_body
       end
       
+      def name
+        case kind
+        when :call
+          body[1]
+        when :lasgn, :iasgn, :class, :module
+          body[0]
+        when :iter
+          body[0].name
+        else
+          nil
+        end
+      end
+      
+      def receiver
+        case kind
+        when :call
+          body[0]
+        else
+          nil
+        end
+      end
+      
+      def arguments
+        case kind
+        when :call, :defs
+          body[2]
+        when :defn, :iter
+          body[1]
+        else
+          nil
+        end
+      end
+      
+      def to_args
+        emit_as_args_array(arguments)
+      end
+      
+      def block
+        
+      end
+      
       def module?(name = nil)
         kind == :module && 
         (name.nil? || match_expression(body[0], name))
@@ -87,9 +128,22 @@ module RubyScribe
         (kind == :defs && (name.nil? || match_expression(body[1], name)))
       end
       
-      def call?(name = nil)
+      def call?(name = nil, options = {})
+        call_without_block?(name, options) || call_with_block?(name, options)
+      end
+      
+      def call_without_block?(name = nil, options = {})
         kind == :call && 
-        (name.nil? || match_expression(body[1], name))
+        (name.nil? || match_expression(body[1], name)) &&
+        (options[:arguments].nil? || match_arguments_expression(self, options[:arguments])) &&
+        (!options[:block])
+      end
+      
+      def call_with_block?(name = nil, options = {})
+        kind == :iter && body[0] && body[0].kind == :call &&
+        (name.nil? || match_expression(body[0].name, name)) &&
+        (options[:arguments].nil? || match_arguments_expression(body[0], options[:arguments])) &&
+        (options[:block].nil? || match_arguments_expression(self, options[:block]))
       end
       
       def conditional?(options = {})
@@ -104,6 +158,23 @@ module RubyScribe
       
       protected
       
+      def emit_as_args_array(e)
+        return e unless e.is_a?(Sexp)
+        
+        case e.kind
+        when :arglist, :args
+          e.body.map {|c| emit_as_args_array(c) }.flatten
+        when :lasgn
+          [e.body[0]]
+        when :masgn
+          e.body[0].body.map {|c| emit_as_args_array(c) }.flatten
+        when :lit
+          [e.body[0]]
+        else
+          [e]
+        end
+      end
+      
       def match_expression(match_against, expression)
         case expression
         when String
@@ -112,6 +183,23 @@ module RubyScribe
           match_against.to_s =~ expression
         when Array
           expression.map(&:to_s).include?(match_against.to_s)
+        else
+          false
+        end
+      end
+      
+      def match_arguments_expression(match_against, expression)
+        case expression
+        when Fixnum
+          expression == match_against.to_args.size
+        when Range
+          expression.include?(match_against.to_args.size)
+        when Array
+          expression == match_against.to_args
+        when TrueClass
+          match_against.to_args.size > 0
+        when FalseClass
+          match_against.to_args.size == 0
         else
           false
         end

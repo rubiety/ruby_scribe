@@ -123,6 +123,12 @@ describe RubyScribe::SexpHelpers do
       it { should be_method("my_method") }
       it { should be_method(/met/) }
       it { should be_method([:my_method, :your_method]) }
+      specify { subject.to_args.should == [:arg] }
+      
+      describe "with two arguments" do
+        subject { s(:defn, :my_method, s(:args, :one, :two), s(:scope, s(:block, s(:lit, 1)))) }
+        specify { subject.to_args.should == [:one, :two] }
+      end
     end
     
     context "class method" do
@@ -134,11 +140,36 @@ describe RubyScribe::SexpHelpers do
     end
     
     context "method call" do
-      subject { s(:call, nil, :invoke, s(:arglist, s(:lit, 1))) }
-      it { should be_call }
-      it { should be_call("invoke") }
-      it { should be_call(/vok/) }
-      it { should be_call([:invoke, :another]) }
+      describe "with one argument" do
+        subject { s(:call, nil, :invoke, s(:arglist, s(:lit, 1))) }
+        it { should be_call }
+        it { should be_call("invoke") }
+        it { should be_call(/vok/) }
+        it { should be_call([:invoke, :another]) }
+        it { should be_call("invoke", :arguments => true) }
+        it { should be_call("invoke", :arguments => 1) }
+        it { should_not be_call("invoke", :arguments => 2) }
+        it { should_not be_call("invoke", :block => true) }
+      end
+      
+      describe "with block" do
+        subject { s(:iter, s(:call, nil, :each, s(:arglist)), s(:lasgn, :i), s(:lit, 1)) }
+        it { should be_call }
+        it { should be_call("each") }
+        it { should be_call("each", :block => true) }
+        it { should be_call("each", :block => 1) }
+        it { should_not be_call("each", :block => 2) }
+        specify { subject.to_args.should == [:i] }
+      end
+      
+      describe "with block (2 arguments) and 1 method argument" do
+        subject { s(:iter, s(:call, nil, :inject, s(:arglist, s(:lit, 1))), s(:masgn, s(:array, s(:lasgn, :b), s(:lasgn, :i))), s(:lit, 1)) }
+        it { should be_call(nil, :block => true) }
+        it { should be_call(nil, :arguments => true) }
+        it { should be_call(nil, :arguments => 1, :block => 2) }
+        it { should_not be_call(nil, :arguments => 2, :block => 2) }
+        specify { subject.to_args.should == [:b, :i] }
+      end
     end
     
     context "conditional" do
