@@ -4,7 +4,7 @@ require "ruby_scribe/version"
 
 Gem::Specification.new do |s|
   s.name        = "ruby_scribe"
-  s.version     = RubyScribe::VERSION
+  s.version     = RubyScribe::VERSION  
   s.author      = "Ben Hughes"
   s.email       = "ben@railsgarden.com"
   s.homepage    = "http://github.com/rubiety/ruby_scribe"
