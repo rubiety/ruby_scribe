@@ -4,26 +4,7 @@ module RubyScribe
   # Takes a proprocessed S-expression and emits formatted Ruby code
   class Emitter
     include EmitterHelpers
-    
-    class_inheritable_accessor :methods_without_parenthesis
-    self.methods_without_parenthesis = %w(
-      attr_accessor attr_reader attr_writer
-      alias alias_method alias_attribute
-      gem require extend include raise
-      delegate autoload raise
-      puts
-    )
-    
-    class_inheritable_accessor :grouped_methods
-    self.grouped_methods = %w(require attr_accessor autoload)
-    
-    class_inheritable_accessor :long_hash_key_size
-    self.long_hash_key_size = 5
-    
-    class_inheritable_accessor :default_indent
-    self.default_indent = 2
-    
-    SYNTACTIC_METHODS = ['+', '-', '<<', '==', '===', '>', '<']
+    include EmitterConfig
     
     def emit(e)
       return "" unless e
@@ -246,7 +227,7 @@ module RubyScribe
     end
     
     def emit_method_call_receiver(e)
-      if e.body[0] && SYNTACTIC_METHODS.include?(e.body[1].to_s)
+      if e.body[0] && self.class.syntactic_methods.include?(e.body[1].to_s)
         "#{emit(e.body[0])} "
       elsif e.body[0]
         "#{emit(e.body[0])}."
@@ -264,7 +245,7 @@ module RubyScribe
         ""
       elsif self.class.methods_without_parenthesis.include?(e.body[1].to_s)
         " " + emit(e.body[2])
-      elsif SYNTACTIC_METHODS.include?(e.body[1].to_s)
+      elsif self.class.syntactic_methods.include?(e.body[1].to_s)
         " " + emit(e.body[2])
       else
         "(" + emit(e.body[2]) + ")"
