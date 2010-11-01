@@ -190,6 +190,10 @@ module RubyScribe
         (options[:block].nil? || match_arguments_expression(self, options[:block]))
       end
       
+      def rescue?
+        kind == :rescue
+      end
+      
       def conditional?(options = {})
         kind == :if && 
         (options[:type].nil? || match_conditional_type(self, options[:type]))
