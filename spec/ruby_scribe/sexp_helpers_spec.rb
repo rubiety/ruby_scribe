@@ -92,11 +92,67 @@ describe RubyScribe::SexpHelpers do
     end
     
     context "method" do
+      describe "blank method" do
+        subject { Sexp.method!("my_method") }
+        it { should == s(:defn, :my_method, s(:args), s(:scope, s(:block, s(:nil)))) }
+      end
+
+      describe "method with arguments" do
+        subject { Sexp.method!("my_method", [:arg1, :arg2]) }
+        it { should == s(:defn, :my_method, s(:args, :arg1, :arg2), s(:scope, s(:block, s(:nil)))) }
+      end
       
+      describe "method with argument default" do
+        subject { Sexp.method!("my_method", [:arg1, :arg2, {:arg2 => s(:lit,  1)}]) }
+        it { should == s(:defn, :my_method, s(:args, :arg1, :arg2, s(:block, s(:lasgn, :arg2, s(:lit, 1)))), s(:scope, s(:block, s(:nil)))) }
+      end
+      
+      describe "method with single-statement body" do
+        subject { Sexp.method!("my_method", [], s(:lit, 1)) }
+        it { should == s(:defn, :my_method, s(:args), s(:scope, s(:block, s(:lit, 1)))) }
+      end
+      
+      describe "method with multiple-statement body as sexp" do
+        subject { Sexp.method!("my_method", [], s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist)))) }
+        it { should == s(:defn, :my_method, s(:args), s(:scope, s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))))) }
+      end
+      
+      describe "method with multiple-statement body including scope" do
+        subject { Sexp.method!("my_method", [], s(:scope, s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))))) }
+        it { should == s(:defn, :my_method, s(:args), s(:scope, s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))))) }
+      end
+      
+      describe "method with multiple-statement body as array" do
+        subject { Sexp.method!("my_method", [], [s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))]) }
+        it { should == s(:defn, :my_method, s(:args), s(:scope, s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))))) }
+      end
     end
     
     context "method call" do
+      describe "without arguments" do
+        subject { Sexp.call!("my_method") }
+        it { should == s(:call, nil, :my_method, s(:arglist)) }
+      end
       
+      describe "with arguments as sexp" do
+        subject { Sexp.call!("my_method", s(:arglist, s(:lit, 1), s(:lit, 2))) }
+        it { should == s(:call, nil, :my_method, s(:arglist, s(:lit, 1), s(:lit, 2))) }
+      end
+      
+      describe "with arguments as array" do
+        subject { Sexp.call!("my_method", [s(:lit, 1), s(:lit, 2)]) }
+        it { should == s(:call, nil, :my_method, s(:arglist, s(:lit, 1), s(:lit, 2))) }
+      end
+      
+      describe "with explicit self" do
+        subject { s(:self).call!("my_method") }
+        it { should == s(:call, s(:self), :my_method, s(:arglist)) }
+      end
+      
+      describe "with receiver" do
+        subject { s(:lit, 1).call!("my_method") }
+        it { should == s(:call, s(:lit, 1), :my_method, s(:arglist)) }
+      end
     end
   end
   

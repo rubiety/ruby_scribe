@@ -14,18 +14,58 @@ module RubyScribe
         s(:class, generate_module_or_class_name(name), generate_class_extend_from(extends), ensure_scope_wrapped(body))
       end
       
-      # TODO:
-      # def method!(name, arguments = nil, body = nil)
-      #   
-      # end
-      # 
-      # def call!(name, arguments = nil, body = nil)
-      #   
-      # end
-      # 
-      # def args!(arguments = [])
-      #   
-      # end
+      def method!(name, arguments = nil, body = nil)
+        s(:defn, name.to_sym, method_args!(arguments), method_body!(body))
+      end
+      
+      def method_on!(on, name, arguments = nil, body = nil)
+        s(:defs, on, name.to_sym, method_args!(arguments), method_body!(body))
+      end
+      
+      def method_args!(arguments = nil)
+        arguments ||= []
+        options = arguments.extract_options!
+        
+        s(*([:args] + arguments.map(&:to_sym))).tap do |args|
+          args.push s(*([:block] + options.map {|k, v| s(:lasgn, k.to_sym, v) })) if options && !options.empty?
+        end
+      end
+      
+      def method_body!(body = nil)
+        if body.is_a?(Sexp) && body.kind == :scope
+          body
+        elsif body.is_a?(Sexp) && body.kind == :block
+          ensure_scope_wrapped(body)
+        elsif body.is_a?(Sexp)
+          method_body!(s(:block, body))
+        elsif body.is_a?(Array)
+          method_body!(s(*([:block] + body)))
+        else
+          method_body!(s(:block, s(:nil)))
+        end
+      end
+      
+      def call!(name, arguments = nil, body = nil)
+        call_on!(nil, name.to_sym, arguments, body)
+      end
+      
+      def call_on!(receiver, name, arguments = nil, body = nil)
+        s(:call, receiver, name.to_sym, call_args!(arguments))
+      end
+      
+      def call_args!(arguments = nil)
+        arguments ||= []
+        
+        if arguments.is_a?(Sexp) && arguments.kind == :arglist
+          arguments
+        elsif arguments.is_a?(Sexp)
+          s(:arglist, arguments)
+        elsif arguments.is_a?(Array)
+          s(*([:arglist] + arguments))
+        else
+          s(:arglist)
+        end
+      end
       
       
       protected
@@ -111,6 +151,10 @@ module RubyScribe
       
       def block
         
+      end
+      
+      def call!(name, arguments = nil, body = nil)
+        Sexp.call_on!(self, name, arguments, body)
       end
       
       def module?(name = nil)
