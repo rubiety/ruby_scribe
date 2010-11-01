@@ -2,15 +2,15 @@
 
 == Introduction
 
-Seattle RB's ruby_parser is a great tool for parsing ruby code into syntax trees.  Ruby Scribe is the reverse of this - a tool for taking an S-expression in Ruby and emitting clean code.  It does this by providing a series of rules that intelligently formats code much as a real developer would.
+Seattle RB's ruby_parser is a great tool for parsing ruby code into syntax trees.  Ruby Scribe is the reverse of this - a tool for taking an S-expression in Ruby and emitting clean code.
+
+This project is similar to the ruby2ruby project (also by seattlerb) in that it is a pretty-printer for Ruby s-expressions, but ruby_scribe goes beyond emitting "runnable" Ruby code and attempts to intelligently format code much as a real developer would, through a series of configurable options.  Running this against the Rails codebase (as in, parsing the file and emitting it back out) shows very few differences.
 
 == Example
 
 Imagine this crappily-formatted Ruby code:
   
   module RubyScribe
-
-
     # My Comment
     class Sample  < Base; 
          def method; do_something_here; end
@@ -23,31 +23,15 @@ Imagine this crappily-formatted Ruby code:
     end
    end
 
-Here is the syntax tree for the above:
-  
-  s(:module,
-   :RubyScribe,
-   s(:scope,
-    s(:class,
-     :Sample,
-     s(:const, :Base),
-     s(:scope,
-      s(:block,
-       s(:defn,
-        :method,
-        s(:args),
-        s(:scope, s(:block, s(:call, nil, :do_something_here, s(:arglist))))),
-       s(:if,
-        s(:call, nil, :new_record?, s(:arglist)),
-        s(:call, nil, :puts, s(:arglist, s(:str, "Yes"))),
-        s(:call, nil, :puts, s(:arglist, s(:str, "No")))))))))
-
-Parse that with RubyParser, then emit it with RubyScribe:
+Parse that with RubyParser:
   
   sexp = RubyParser.new.parse(File.read("bad_code.rb"))
+
+Then emit it with Ruby Scribe:
+
   RubyScribe::Emitter.new.emit(sexp)
 
-And out pops this:
+And out pops this, nice and clean:
   
   module RubyScribe
     # My Comment
@@ -65,15 +49,6 @@ And out pops this:
   end
 
 
-== Applications
-
-The combination of these two tools allows some other interesting tools to be written.  One of example tool (and indeed the entire reason I started this project) is my rspecify tool, which can take a test directory with code written using Test::Unit and, via a Ruby Scribe Preprocessor, convert it into RSpec, automating 99% of what a human developer would normally have to do.
-
-Future projects using these two gems could be:
-* Automated refactoring tools
-* Tools that take a project and try to apply a set of "coding standards"
-* Tools that produce metrics on how much your code differs from the project's "coding standards" implementation.
-
 == Usage
 
 The entire project simply takes an incoming Sexp object (from the ruby_parser project) and emits a single string.  To do this just use an Emitter:
@@ -86,17 +61,13 @@ The +Emitter+ class is nothing but a bunch of recursion.  The main emit method i
 
 To extend or implement your own Emitter, just subclass +RubyScribe::Emitter+ and override the necessary methods.
 
-== Preprocess Implementation
-
-This feature is not developed yet, but is intended on presenting a standard recursion-based class for implementing transformations of S-expressions.
-
 == Known Issues
 
 * Since there are still some holes in the implementation, any s-expression type that is unknown will cause the following to be emitted: "## RubyScribe-UNKNOWN: :type ##".  Once stable any unknown type will instead throw an exception.
-* Anything involving order of operations currently much surround the expression in ( ).  Will probably expand later to omit this when order of operations is implied, but this requires a context stack.  There may actually be other issues related to order of operations.  To do this properly requires maintaining context of operations and, starting with the case for parenthesis, remove parentheses when the emitter determines that the order of operations is implied by Ruby syntax rules.  Right now the emitter more or less assumes order of operations is implied and does not use parantheses, except in the cases of || and && in which case it does.
-* Some of the more obscure types are not implemented.
+* Anything involving order of operations currently much surround the expression in ( ).  Will probably expand later to omit this when order of operations is implied, but this requires a context stack.  There may actually be other issues related to order of operations.  To do this properly requires maintaining context of operations and, starting with the case for parenthesis, remove parentheses when the emitter determines that the order of operations is implied by Ruby syntax rules.  Right now the emitter more or less assumes order of operations is implied and does not use parentheses, except in the cases of || and && in which case it does.
 * Only comments on methods, class, and module declarations are retained.  This is actually a limitation of ruby_parser as for whatever reason 
 in-line comments cannot be parsed correctly.
+* Markers such as __FILE__ and __LINE__ are not parsed as you would expect from ruby_parser.  A monkey patch to ruby_parser is required for this to work.
 
 == Future Features
 
