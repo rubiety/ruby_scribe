@@ -112,11 +112,11 @@ module RubyScribe
         return nl
       end
       
-      if previous_member.kind == :call && self.class.grouped_methods.include?(previous_member.body[1].to_s) && (current_member.kind != :call || (current_member.kind == :call && current_member.body[1] != previous_member.body[1]))
+      if previous_member.kind == :call && grouped_methods.include?(previous_member.body[1].to_s) && (current_member.kind != :call || (current_member.kind == :call && current_member.body[1] != previous_member.body[1]))
         return nl
       end
       
-      if current_member.kind == :call && self.class.grouped_methods.include?(current_member.body[1].to_s) && (previous_member.kind != :call || (previous_member.kind == :call && previous_member.body[1] != current_member.body[1]))
+      if current_member.kind == :call && grouped_methods.include?(current_member.body[1].to_s) && (previous_member.kind != :call || (previous_member.kind == :call && previous_member.body[1] != current_member.body[1]))
         return nl
       end
       
@@ -227,7 +227,7 @@ module RubyScribe
     end
     
     def emit_method_call_receiver(e)
-      if e.body[0] && self.class.syntactic_methods.include?(e.body[1].to_s)
+      if e.body[0] && syntactic_methods.include?(e.body[1].to_s)
         "#{emit(e.body[0])} "
       elsif e.body[0]
         "#{emit(e.body[0])}."
@@ -243,9 +243,9 @@ module RubyScribe
     def emit_method_call_arguments(e)
       if e.body[2].body.empty?
         ""
-      elsif self.class.methods_without_parenthesis.include?(e.body[1].to_s)
+      elsif methods_without_parenthesis.include?(e.body[1].to_s)
         " " + emit(e.body[2])
-      elsif self.class.syntactic_methods.include?(e.body[1].to_s)
+      elsif syntactic_methods.include?(e.body[1].to_s)
         " " + emit(e.body[2])
       else
         "(" + emit(e.body[2]) + ")"
@@ -506,7 +506,7 @@ module RubyScribe
     def emit_hash_body(e, force_short = false)
       grouped = e.body.in_groups_of(2)
       
-      if !force_short && grouped.size >= self.class.long_hash_key_size
+      if !force_short && grouped.size >= long_hash_key_size
         indent(2) { nl + grouped.map {|g| "#{emit(g[0])} => #{emit(g[1])}" }.join("," + nl) } + nl
       else
         grouped.map {|g| "#{emit(g[0])} => #{emit(g[1])}" }.join(", ")

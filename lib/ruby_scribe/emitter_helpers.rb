@@ -9,7 +9,7 @@ module RubyScribe
     end
     
     def indent(level = nil)
-      level = self.class.default_indent if level.nil?
+      level = default_indent if level.nil?
       
       indents.push(level)
       output = yield
