@@ -150,7 +150,18 @@ module RubyScribe
       end
       
       def block
-        
+        case kind
+        when :defn
+          strip_scope_wrapper(body[2])
+        when :defs
+          strip_scope_wrapper(body[3])
+        when :class
+          strip_scope_wrapper(body[2])
+        when :module
+          strip_scope_wrapper(body[1])
+        else
+          nil
+        end
       end
       
       def call!(name, arguments = nil, body = nil)
@@ -264,6 +275,10 @@ module RubyScribe
         else
           false
         end
+      end
+      
+      def strip_scope_wrapper(e)
+        e.kind == :scope ? strip_scope_wrapper(e.body[0]) : e
       end
     end
   end

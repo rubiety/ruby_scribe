@@ -36,6 +36,7 @@ describe RubyScribe::SexpHelpers do
       describe "with block body passed" do
         subject { Sexp.module!("MyModule", s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist)))) }
         it { should == s(:module, :MyModule, s(:scope, s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))))) }
+        specify { subject.block.should == s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))) }
       end
     end
     
@@ -73,6 +74,7 @@ describe RubyScribe::SexpHelpers do
       describe "with block body passed" do
         subject { Sexp.class!("MyClass", nil, s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist)))) }
         it { should == s(:class, :MyClass, nil, s(:scope, s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))))) }
+        specify { subject.block.should == s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))) }
       end
       
       describe "extending a string name" do
@@ -125,6 +127,7 @@ describe RubyScribe::SexpHelpers do
       describe "method with multiple-statement body as array" do
         subject { Sexp.method!("my_method", [], [s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))]) }
         it { should == s(:defn, :my_method, s(:args), s(:scope, s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))))) }
+        specify { subject.block.should == s(:block, s(:call, nil, :one, s(:arglist)), s(:call, nil, :two, s(:arglist))) }
       end
     end
     
