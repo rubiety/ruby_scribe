@@ -1,10 +1,10 @@
 = Ruby Scribe
 
+Generates nicely-formatted ruby source code given a ruby abstract syntax tree (from seattlerb's ruby_parser).
+
 == Introduction
 
-Seattle RB's ruby_parser is a great tool for parsing ruby code into syntax trees.  Ruby Scribe is the reverse of this - a tool for taking an S-expression in Ruby and emitting clean code.
-
-This project is similar to the ruby2ruby project (also by seattlerb) in that it is a pretty-printer for Ruby s-expressions, but ruby_scribe goes beyond emitting "runnable" Ruby code and attempts to intelligently format code much as a real developer would, through a series of configurable options.  Running this against the Rails codebase (as in, parsing the file and emitting it back out) shows very few differences.
+Ruby Scribe attempts to intelligently format code (from an AST) much as a real developer would, through a series of configurable option.  Running this against the Rails codebase (as in, parsing the file and emitting it back out) shows very few differences.
 
 == Example
 
