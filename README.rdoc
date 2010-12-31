@@ -4,7 +4,13 @@ Generates nicely-formatted ruby source code given a ruby abstract syntax tree (f
 
 == Introduction
 
-Ruby Scribe attempts to intelligently format code (from an AST) much as a real developer would, through a series of configurable option.  Running this against the Rails codebase (as in, parsing the file and emitting it back out) shows very few differences.
+Ruby Scribe attempts to intelligently format code (from an AST) much as a real developer would, through a series of configurable option.  
+
+== Approach
+
+To approach creating a solid pretty-printer, I used the Rails codebase as "ideal" coding style for the emitter with default parameters.  As I continued to refine ruby_scribe,
+I ran it (with no AST transformations) against every ruby file in the Rails codebase.  The smaller the remaining git diff after each iteration, the better the emitter was.  
+There are even some instances I think ruby_scribe emits more consistent code than what currently exists in the Rails codebase.
 
 == Example
 
@@ -14,13 +20,6 @@ Imagine this crappily-formatted Ruby code:
     # My Comment
     class Sample  < Base; 
          def method; do_something_here; end
-
-     if(new_record?) then
-         puts "Yes"
-      else
-             puts 'No'
-        end
-    end
    end
 
 Parse that with RubyParser:
@@ -38,12 +37,6 @@ And out pops this, nice and clean:
     class Sample < Base
       def method
         do_something_here
-      end
-
-      if new_record?
-        puts "Yes"
-      else
-        puts "No"
       end
     end
   end
