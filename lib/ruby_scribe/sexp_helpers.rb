@@ -1,3 +1,5 @@
+require "active_support/concern"
+
 module RubyScribe
   
   # Various helpers for matching and constructing S-expressions without having to deal with 
