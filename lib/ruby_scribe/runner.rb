@@ -26,7 +26,7 @@ module RubyScribe
     
     def expand_paths(paths = [])
       paths.map do |path|
-        [path] + Dir[path + "**/*.rb"]
+        [path] + Dir[File.join(path,"**/*.rb")]
       end.flatten.uniq.reject {|f| File.directory?(f) }
     end
   end
