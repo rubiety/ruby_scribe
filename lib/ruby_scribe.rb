@@ -1,4 +1,5 @@
 require "rubygems"
+require "bundler/setup"
 require "ruby_parser"
 
 require "ruby_scribe/sexp_helpers"
