@@ -10,6 +10,7 @@ module RubyScribe
       return "" unless e
       return e if e.is_a?(String)
       return e.to_s if e.is_a?(Symbol)
+      return e unless e.respond_to?(:kind)
       
       case e.kind
       when :block
@@ -86,7 +87,7 @@ module RubyScribe
       return "" if e.body.first == s(:nil)
       
       # Special case for handling rescue blocks around entire methods (excluding the indent):
-      return emit_method_rescue(e.body.first) if e.body.first.rescue? && e.body.size == 1
+      return emit_method_rescue(e.body.first) if e.body.first.try(:rescue?) && e.body.size == 1
       
       e.body.map do |child|
         emit_block_member_prefix(e.body, child) + 
@@ -414,6 +415,8 @@ module RubyScribe
     end
     
     def emit_assignments_as_arguments(e)
+      return nil unless e && e.respond_to?(:kind) && e.body.first
+
       if e.kind == :masgn
         e.body.first.body.map {|c| emit_assignments_as_arguments(c) }.join(", ")
       elsif e.kind == :lasgn

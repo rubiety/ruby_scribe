@@ -12,12 +12,17 @@ module RubyScribe
     desc :convert, "Takes a single file or multiple files, parses them, then replaces the original file(s) with the scribed version."
     def convert(*paths)
       expand_paths(paths).each do |path|
-        sexp = RubyParser.new.parse(File.read(path))
-        output = RubyScribe::Emitter.new.emit(sexp)
-        
-        File.open(path, "w") do |file|
-          file.write(output)
-          file.flush
+        begin
+          sexp = RubyParser.new.parse(File.read(path))
+          output = RubyScribe::Emitter.new.emit(sexp)
+          
+          File.open(path, "w") do |file|
+            file.write(output)
+            file.flush
+          end
+        rescue Racc::ParseError, SyntaxError => e
+          $stderr.puts "! Failed to parse #{path}:"
+          $stderr.puts e.message
         end
       end
     end
