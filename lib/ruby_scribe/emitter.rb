@@ -396,8 +396,8 @@ module RubyScribe
     end
     
     def emit_block_invocation_body(e)
-      # If it's on the same line, it should probably be shorthand form:
-      if e.line == e.body.third.try(:line)
+      # If we have line information, and it's on the same line, it should probably be shorthand form:
+      if e.line && e.line == e.body.third.try(:line)
         " {#{emit_block_invocation_arguments(e)} #{emit(e.body.third)} }"
       else
         " do #{emit_block_invocation_arguments(e)}".gsub(/ +$/, '') + 
