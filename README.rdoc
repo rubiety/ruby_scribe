@@ -1,3 +1,5 @@
+{<img src="https://secure.travis-ci.org/rubiety/ruby_scribe.png?branch=master" alt="Build Status" />}[http://travis-ci.org/rubiety/ruby_scribe]
+
 = Ruby Scribe
 
 Generates nicely-formatted ruby source code given a ruby abstract syntax tree (from seattlerb's ruby_parser).
